@@ -1,9 +1,32 @@
 <html lang="en">
 <head>
   <title>test page</title>
+  <style>
+    div{
+      width: 100px;
+      height: 100px;
+      background: red;
+      color: white;
+    }
+    body div #myid {
+      width: 100px;
+      height: 100px;
+      background: black;
+    }
+    body div img {
+      width: 30px;
+      background: grey;
+    }
+  </style>
 </head>
 <body>
   <h1>My Page</h1>
-  <div>Welcome to My Page!</div>
+  <div>
+    <span>Welcome to My Page!</span>
+  </div>
+  <div>
+    <img id="myid" />
+    <img />
+  </div>
 </body>
 </html>

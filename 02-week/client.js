@@ -1,5 +1,5 @@
 const net = require('net');
-const parser = require('./07-combineText/parser.js');
+const parser = require('./13-generateComputed/parser.js');
 
 class Request {
   constructor(options) {
