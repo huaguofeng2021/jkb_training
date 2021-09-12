@@ -133,7 +133,7 @@ class ResponseParser {
       if(char === '\n') {
         this.current = this.WAITING_HEADER_NAME;
       }
-    }else if(this.current = this.WAITING_HEADER_BLOCK_END) {
+    }else if(this.current === this.WAITING_HEADER_BLOCK_END) {
       if(char === '\n') {
         this.current = this.WAITING_BODY;
       }
@@ -182,9 +182,9 @@ class TrunkedBodyParser {
       }
     }else if(this.current === this.WAITING_NEW_LINE) {
       if(char === '\r') {
-        this.current = this.WAITING_LENGTH_LINE_END;
+        this.current = this.WAITING_NEW_LINE_END;
       }
-    }else if(this.current === this.WAITING_LENGTH_LINE_END) {
+    }else if(this.current === this.WAITING_NEW_LINE_END) {
       if(char === '\n') {
         this.current = this.WAITING_LENGTH;
       }
