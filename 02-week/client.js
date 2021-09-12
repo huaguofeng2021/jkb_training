@@ -1,5 +1,5 @@
 const net = require('net');
-const parser = require('./05-attribute/parser.js');
+const parser = require('./07-combineText/parser.js');
 
 class Request {
   constructor(options) {
@@ -209,5 +209,7 @@ void async function() {
   let response = await request.send();
   
   let dom = parser.parseHTML(response.body);
+
+  console.log(dom)
 
 }();
