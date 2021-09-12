@@ -1,4 +1,5 @@
 const http = require('http');
+const fs = require('fs');
 
 http.createServer((request, response) => {
   let body = [];
@@ -10,19 +11,11 @@ http.createServer((request, response) => {
     body = Buffer.concat(body).toString();
     response.writeHead(200, {'Content-type': 'text/html'});
     //response.end(' Hello World\n');
-    response.end(`<!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Document</title>
-    </head>
-    <body>
-      <h1>test page</h1>
-      <div>Welcome to the test page!</div>
-    </body>
-    </html>`);
+    fs.readFile('./test.html', function (err, html) {
+      if (err) { throw err; }       
+      response.write(html);  
+      response.end();  
+    })
   })
 }).listen(8088);
 
