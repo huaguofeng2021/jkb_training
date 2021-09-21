@@ -1,5 +1,5 @@
 const net = require('net');
-const parser = require('./13-generateComputed/parser.js');
+const parser = require('./10-getParent/parser.js');
 
 class Request {
   constructor(options) {
@@ -202,14 +202,12 @@ void async function() {
       ['X-Foo2']: 'customized'
     },
     body: {
-      name: 'winter'
+      name: 'JaneNg'
     }
   });
 
   let response = await request.send();
   
   let dom = parser.parseHTML(response.body);
-
-  console.log(dom)
 
 }();

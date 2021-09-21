@@ -1,7 +1,7 @@
 const EOF = Symbol('EOF');
 
 function data(c) {
-
+  console.log(c);
 }
 
 module.exports.parseHTML = function parseHTML(html) {
