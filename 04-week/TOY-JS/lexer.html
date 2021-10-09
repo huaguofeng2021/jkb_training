@@ -1,0 +1,34 @@
+<script>
+  let xregexp = {
+    InputElement: /<Whitespace>|<LineTerminator>|<Comment>|<Token>/,
+    Whitespace: / /,
+    Comments: /\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*/,
+    Token: /<NumberLiteral>|<BooleanLiteral>/
+  }
+
+  function compileRegExp(xregexp, name) {
+    let regexp = xregexp[name].source.replace(/\<([^>]+)\>/, function(str, $1) {
+      return compileRegExp(xregexp, $1);
+    });
+    return regexp;
+  }
+  
+  function scan(str) {
+    let regexp = / |\n|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*|[1-9][0-9]*|0/g;
+    while(regexp.lastIndex < str.length) {
+      let r = regexp.exec(str);
+      console.log(JSON.stringify(r[0]));
+    }
+  }
+
+  scan(`
+    13
+    5
+    7
+    12200
+    0
+    //hello world
+    /*hello world*/
+    /*Jane*/
+  `)
+</script>
