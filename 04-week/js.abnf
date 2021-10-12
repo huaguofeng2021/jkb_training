@@ -13,7 +13,6 @@ Literal ::= NumberLiteral | BooleanLiteral | StringLiteral | NullLiteral | Undef
 Keywords ::= "if" | "else" | "for" | "function" ......
 Punctuator ::= "+" | "-" | "*" | "/" | "{" | "}" | ......
 
-
 Program ::= Statement+ 
 
 Statement ::= ExpressionStatement | IfStatement 
