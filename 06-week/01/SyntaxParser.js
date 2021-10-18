@@ -42,14 +42,27 @@ let syntax = {
     ["(", "Expression", ")"],
     ["Literal"],
     ["Identifier"],
-    //array,object,function放在这一层
   ],
   Literal: [
     ["NumericalLiteral"],
     ["BooleanLiteral"],
     ["StringLiteral"],
     ["NullLiteral"],
-    ["RegularExpression"],
+    ["RegularExpressionLiteral"],
+    ["ObjectLiteral"],
+    ["ArrayLiteral"],
+  ],
+  ObjectLiteral: [
+    ["{", "}"],
+    ["{", "PropertyList", "}"]
+  ],
+  PropertyList: [
+    ["Property"],
+    ["PropertyList", ",", "Property"],
+  ],
+  Property: [
+    ["StringLiteral", ":", "AdditiveExpression"],
+    ["Identifier", ":", "AdditiveExpression"]
   ]
 }
 
@@ -225,6 +238,70 @@ let evaluator = {
     }
 
     console.log(value);
+    return value;
+  },
+  StringLiteral(node) {
+    let result = [];
+    for(let i = 1; i < node.value.length - 1; i++) {
+      if(node.value[i] === '\\') {
+        ++i;
+        let c = node.value[i];
+        let map = {
+          "\"": "\"",
+          "\'": "\'",
+          "\\": "\\",
+          "0": String.fromCharCode(0x0000),
+          "b": String.fromCharCode(0x0008),
+          "f": String.fromCharCode(0x000C),
+          "n": String.fromCharCode(0x000A),
+          "r": String.fromCharCode(0x000D),
+          "t": String.fromCharCode(0x0009),
+          "v": String.fromCharCode(0x000B),
+        }
+        if(c in map) {
+          result.push(map[c]);
+        } else {
+          result.push(c);
+        }
+      } else {
+        result.push(node.value[i]);
+      }
+    }
+    console.log(result);
+    return result.join('');
+  },
+  ObjectLiteral(node) {
+    if(node.children.length === 2) {
+      return {};
+    }
+    if(node.children.length === 3) {
+      let object = new Map();
+      this.PropertyList(node.children[1], object);
+      //object.prototype = 
+      return object;
+    }
+  },
+  PropertyList(node, object) {
+    if(node.children.length === 1) {
+      this.Property(node.children[0], object);
+    } else {
+      this.PropertyList(node.children[0], object);
+      this.Property(node.children[2], object);
+    }
+  },
+  Property(node, object) {
+    let name;
+    if(node.children[0].type === "Identifier") {
+      name = node.children[0].name;
+    } else if(node.children[0].type === "StringLiteral") {
+      name = evaluate(node.children[0].name);
+    }
+    object.set(name, { 
+      value: evaluate(node.children[2]),
+      writable: true,
+      enumerable: true,
+      configable: true
+    });
   }
 }
 
@@ -236,10 +313,6 @@ function evaluate(node) {
 
 //////////////////
 
-let source = (`
-  0xFF;
-`);
-
-let tree = parse(source);
-
-evaluate(tree);
+window.js = {
+  evaluate,parse
+}
