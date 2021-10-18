@@ -26,6 +26,10 @@ let syntax = {
     ["Expression", ";"]
   ],
   Expression: [
+    ["AssignmentExpression"]
+  ],
+  AssignmentExpression: [
+    ["Identifier", "=", "AssignmentExpression"],
     ["AdditiveExpression"]
   ],
   AdditiveExpression: [
@@ -75,13 +79,12 @@ function closure(state) {
   let queue = [];
   for(let symbol in state) {
     if(symbol.match(/^\$/)) {
-      return;
+      continue;
     }
     queue.push(symbol);
   }
   while(queue.length) {
     let symbol = queue.shift();
-    //console.log(symbol);
     if(syntax[symbol]) {
       for(let rule of syntax[symbol]) {
         if(!state[rule[0]])
@@ -101,7 +104,7 @@ function closure(state) {
   }
   for(let symbol in state) {
     if(symbol.match(/^\$/)) {
-      return;
+      continue;
     }
     if(hash[JSON.stringify(state[symbol])]) 
       state[symbol] = hash[JSON.stringify(state[symbol])];
@@ -160,6 +163,51 @@ function parse(source) {
   return reduce();
 }
 
+class Realm {
+  constructor() {
+    this.global = new Map(),
+    this.Object = new Map(),
+    this.Object.call = function() {
+
+    }
+    this.Object_prototype = new Map()
+  }
+}
+
+class EnvironmentRecord {
+  constructor() {
+    this.thisValue
+    this.variables = new Map();
+    this.outer = null;
+  }
+}
+
+class ExecutionContext {
+  constructor() {
+    this.lexicalEnvironment = {};
+    this.variableEnvironment = this.lexicalEnvironment;
+    this.realm = {
+      // global: {},
+      // Object: {},
+      // Object_prototype: {}
+    }
+  }
+  //LexicalEnvironment: {a:1, b:2}
+}
+
+class Reference {
+  constructor(object, property) {
+    this.object = object;
+    this.property = property;
+  }
+  set(value) {
+    this.object[this.property] = value;
+  }
+  get() {
+    return this.object[this.property];
+  }
+}
+
 let evaluator = {
   Program(node) {
     return evaluate(node.children[0]);
@@ -176,7 +224,9 @@ let evaluator = {
     return evaluate(node.children[0]);
   },
   VariableDeclaration(node) {
-    console.log("Declare variable", node.children[1].name);
+    debugger;
+    let runningEC = ecs[ecs.length - 1];
+    runningEC.variableEnvironment[node.children[1].name];
   },
   ExpressionStatement(node) {
     return evaluate(node.children[0]);
@@ -237,7 +287,7 @@ let evaluator = {
       value = value * n + c;
     }
 
-    console.log(value);
+    //console.log(value);
     return value;
   },
   StringLiteral(node) {
@@ -267,7 +317,7 @@ let evaluator = {
         result.push(node.value[i]);
       }
     }
-    console.log(result);
+    //console.log(result);
     return result.join('');
   },
   ObjectLiteral(node) {
@@ -300,14 +350,33 @@ let evaluator = {
       value: evaluate(node.children[2]),
       writable: true,
       enumerable: true,
-      configable: true
+      configurable: true
     });
+  },
+  AssignmentExpression(node) {
+    if(node.children.length === 1) {
+      return evaluate(node.children[0]);
+    }
+    let left = evaluate(node.children[0]);
+    let right = evaluate(node.children[2]);
+    left.set(right);
+  },
+  Identifier(node) {
+    let runningEC = ecs[ecs.length - 1];
+    return new Reference(
+      runningEC.lexicalEnvironment,
+      node.name
+    );
   }
 }
+let realm = new Realm();
+let ecs = [new ExecutionContext];
 
 function evaluate(node) {
   if(evaluator[node.type]) {
-    return evaluator[node.type](node);
+    let r = evaluator[node.type](node);
+    //console.log(r);
+    return r;
   }
 }
 
