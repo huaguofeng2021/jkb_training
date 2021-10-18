@@ -41,10 +41,15 @@ let syntax = {
   PrimaryExpression: [
     ["(", "Expression", ")"],
     ["Literal"],
-    ["Identifier"]
+    ["Identifier"],
+    //array,object,function放在这一层
   ],
   Literal: [
-    ["Number"]
+    ["NumericalLiteral"],
+    ["BooleanLiteral"],
+    ["StringLiteral"],
+    ["NullLiteral"],
+    ["RegularExpression"],
   ]
 }
 
@@ -102,10 +107,6 @@ let start = {
 
 closure(start);
 
-let source = (`
-var a;
-`);
-
 function parse(source) {
   let stack = [start];
   let symbolStack = [];
@@ -143,7 +144,102 @@ function parse(source) {
     shift(symbol);
     //console.log(symbol);
   } 
-  console.log(reduce()); 
+  return reduce();
 }
 
-parse(source);
+let evaluator = {
+  Program(node) {
+    return evaluate(node.children[0]);
+  },
+  StatementList(node) {
+    if(node.children.length === 1) {
+      return evaluate(node.children[0]);
+    } else{
+      evaluate(node.children[0]);
+      return evaluate(node.children[1]);
+    }
+  },
+  Statement(node) {
+    return evaluate(node.children[0]);
+  },
+  VariableDeclaration(node) {
+    console.log("Declare variable", node.children[1].name);
+  },
+  ExpressionStatement(node) {
+    return evaluate(node.children[0]);
+  },
+  Expression(node) {
+    return evaluate(node.children[0]);
+  },
+  AdditiveExpression(node) {
+    if(node.children.length === 1) {
+      return evaluate(node.children[0]);
+    } else { 
+      //TODO
+    }
+    
+  },
+  MultiplicativeExpression(node) {
+    if(node.children.length === 1) {
+      return evaluate(node.children[0]);
+    } else { 
+      //TODO
+    }
+    
+  },
+  PrimaryExpression(node) {
+    if(node.children.length === 1) {
+      return evaluate(node.children[0]);
+    }
+  },
+  Literal(node) {
+    return evaluate(node.children[0]);
+  },
+  NumericalLiteral(node) {
+    let str = node.value;
+    let l = str.length;
+    let value = 0;
+    let n = 10;
+
+    if(str.match(/^0b/)){
+      n = 2;
+      l -= 2;
+    } else if(str.match(/^0o/)){
+      n = 8;
+      l -= 2;
+    } else if(str.match(/^0x/)) {
+      n = 16;
+      l -= 2;
+    }
+
+    while(l--) {
+      let c = str.charCodeAt(str.length - l - 1);
+      if(c >= 'a'.charCodeAt(0)) {
+        c = c - 'a'.charCodeAt(0) + 10;
+      } else if(c >= 'A'.charCodeAt(0)) {
+        c = c - 'A'.charCodeAt(0) + 10;
+      } else if(c >= '0'.charCodeAt(0)) {
+        c = c - '0'.charCodeAt(0);
+      }
+      value = value * n + c;
+    }
+
+    console.log(value);
+  }
+}
+
+function evaluate(node) {
+  if(evaluator[node.type]) {
+    return evaluator[node.type](node);
+  }
+}
+
+//////////////////
+
+let source = (`
+  0xFF;
+`);
+
+let tree = parse(source);
+
+evaluate(tree);

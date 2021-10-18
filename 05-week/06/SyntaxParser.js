@@ -1,7 +1,7 @@
-import { scan } from "./LexParser.js"
+import { scan } from "./LexParser.js";
 
 let syntax = {
-  Program: [["Statement", "EOF"]],
+  Program: [["StatementList", "EOF"]],
   StatementList: [
     ["Statement"],
     ["StatementList", "Statement"]
@@ -10,14 +10,14 @@ let syntax = {
     ["ExpressionStatement"],
     ["IfStatement"],
     ["VariableDeclaration"],
-    ["FunctionDeclaration"],
+    ["FunctionDeclaration"]
   ],
   IfStatement: [
-    ["if", "(", "Expression", ")", "Statement"],
+    ["if", "(", "Expression", ")", "Statement"]
   ],
   VariableDeclaration: [
     ["var", "Identifier", ";"],
-    ["let", "Identifier", ";"],
+    ["let", "Identifier", ";"]
   ],
   FunctionDeclaration: [
     ["function", "Identifier", "(", ")", "{", "StatementList", "}"]
@@ -41,7 +41,8 @@ let syntax = {
   PrimaryExpression: [
     ["(", "Expression", ")"],
     ["Literal"],
-    ["Identifier"]
+    ["Identifier"],
+    //array,object,function放在这一层
   ],
   Literal: [
     ["Number"],
@@ -54,30 +55,29 @@ let syntax = {
 
 let hash = {
 
-}
+};
 
 function closure(state) {
   hash[JSON.stringify(state)] = state;
-  //广度优先搜索
   let queue = [];
   for(let symbol in state) {
     if(symbol.match(/^\$/)) {
-      return ;
+      return;
     }
     queue.push(symbol);
   }
   while(queue.length) {
     let symbol = queue.shift();
-    
+    //console.log(symbol);
     if(syntax[symbol]) {
       for(let rule of syntax[symbol]) {
-        if(!state[rule[0]]) {
+        if(!state[rule[0]])
           queue.push(rule[0]);
-        }
+        
         let current = state;
         for(let part of rule) {
           if(!current[part]) {
-            current[part] = {}
+            current[part] = {};
           }
           current = current[part];
         }
@@ -86,16 +86,14 @@ function closure(state) {
       }
     }
   }
-
   for(let symbol in state) {
     if(symbol.match(/^\$/)) {
-      return ;
+      return;
     }
-    if(hash[JSON.stringify(state[symbol])]) {
+    if(hash[JSON.stringify(state[symbol])]) 
       state[symbol] = hash[JSON.stringify(state[symbol])];
-    }else {
+    else 
       closure(state[symbol]);
-    }
   }
 }
 
@@ -104,7 +102,7 @@ let end = {
 }
 
 let start = {
-  "Program" : end
+  "Program": end
 }
 
 closure(start);
@@ -114,20 +112,20 @@ function parse(source) {
   let symbolStack = [];
   function reduce() {
     let state = stack[stack.length - 1];
-    
     if(state.$reduceType) {
-      let children = []
+      let children = [];
       for(let i = 0; i < state.$reduceLength; i++) {
         stack.pop();
         children.push(symbolStack.pop());
       }
-      //create a non-terminal symbol and shift it
-      shift({
+      
+      /* create a non-terminal symbol and shift it */
+      return {
         type: state.$reduceType,
         children: children.reverse()
-      });
-    }else {
-      throw new Error("unexpected token");
+      };
+    } else {
+      throw new Error("unexpected token")
     }
   }
   
@@ -135,17 +133,17 @@ function parse(source) {
     let state = stack[stack.length - 1];
     if(symbol.type in state) {
       stack.push(state[symbol.type]);
+      symbolStack.push(symbol);
     } else {
-      /*reduce to non-terminal symbols*/
-      reduce();
+      /* reduce to non-terminal symbols */
+      shift(reduce());
       shift(symbol);
     }
   }
-  
-  for(let symbol/*terminal symbols*/ of scan(source)) {
+  for(let symbol/* terminal symbols */ of scan(source)) {
     shift(symbol);
-  }
-
+    //console.log(symbol);
+  } 
   return reduce();
 }
 
@@ -156,7 +154,7 @@ let evaluator = {
   StatementList(node) {
     if(node.children.length === 1) {
       return evaluate(node.children[0]);
-    } else {
+    } else{
       evaluate(node.children[0]);
       return evaluate(node.children[1]);
     }
@@ -170,7 +168,7 @@ let evaluator = {
   EOF() {
     return null;
   }
-};
+}
 
 function evaluate(node) {
   if(evaluator[node.type]) {
@@ -178,11 +176,12 @@ function evaluate(node) {
   }
 }
 
-//////////////////////////////////////
+//////////////////
 
-let source = `
-  var a;
-`;
+let source = (`
+var a;
+var b;
+`);
 
 let tree = parse(source);
 
