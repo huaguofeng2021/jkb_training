@@ -56,6 +56,9 @@ function closure(state) {
   hash[JSON.stringify(state)] = state;
   let queue = [];
   for(let symbol in state) {
+    if(symbol.match(/^\$/)) {
+      return;
+    }
     queue.push(symbol);
   }
   while(queue.length) {
@@ -74,12 +77,12 @@ function closure(state) {
           current = current[part];
         }
         current.$reduceType = symbol;
-        current.$reduceState = state;
+        current.$reduceLength = rule.length;
       }
     }
   }
   for(let symbol in state) {
-    if(symbol.match(/^$/)) {
+    if(symbol.match(/^\$/)) {
       return;
     }
     if(hash[JSON.stringify(state[symbol])]) 
@@ -104,18 +107,36 @@ var a;
 `);
 
 function parse(source) {
-  let state = start;
-  for(let symbol/* terminal symbols */ of scan(source)) {
+  let stack = [start];
+  function reduce() {
+    let state = stack[state.length - 1];
+    if(state.$reduceType) {
+      let children = [];
+      for(let i; i < state.$reduceLength; i++) {
+        children.push(stack.pop());
+      }
+      state = state.$reduceState;
+      /* create a non-terminal symbol and shift it */
+      shift({
+        type: state.$reduceType,
+        children: children.reverse()
+      });
+    }
+  }
+  
+  function shift(symbol) {
+    let state = stack[state.length - 1];
     if(symbol.type in state) {
       console.log(state);
-      state = state[symbol.type];
+      stack.push(symbol);
     } else {
       /* reduce to non-terminal symbols */
-      if(state.$reduceType) {
-        state = state.$reduceState;
-      }
-      debugger;
+      reduce();
+      shift(symbol);
     }
+  }
+  for(let symbol/* terminal symbols */ of scan(source)) {
+    shift(symbol);
     console.log(symbol);
   }  
 }
