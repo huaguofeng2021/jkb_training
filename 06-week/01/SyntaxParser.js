@@ -26,7 +26,7 @@ let syntax = {
     ["Expression", ";"]
   ],
   Expression: [
-    ["AssignmentExpression"]
+    ["LogicalORExpression"]
   ],
   AssignmentExpression: [
     ["LeftHandSideExpression", "=", "LogicalORExpression"],

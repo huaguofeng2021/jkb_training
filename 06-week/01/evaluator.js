@@ -1,4 +1,9 @@
-import { ExecutionContext, Reference, Realm } from "./runtime.js";
+import { 
+  ExecutionContext, 
+  Reference, 
+  Realm,
+} from "./runtime.js";
+
 export class Evaluator {
   constructor() {
     this.realm = new Realm();
@@ -7,9 +12,7 @@ export class Evaluator {
   }
   evaluate(node) {
     if(this[node.type]) {
-      let r = this[node.type](node);
-      //console.log(r);
-      return r;
+      return this[node.type](node);
     }
   }
   Program(node) {
@@ -160,6 +163,82 @@ export class Evaluator {
     let left = this.evaluate(node.children[0]);
     let right = this.evaluate(node.children[2]);
     left.set(right);
+  }
+  LogicalORExpression(node) {
+    if(node.children.length === 1) {
+      return this.evaluate(node.children[0]);
+    }
+    let result = this.evaluate(node.children[0]);
+    if(result) {
+      return result;
+    } else {
+      return this.evaluate(node.children[2]);
+    }
+  }
+  LogicalANDExpression(node) {
+    if(node.children.length === 1) {
+      return this.evaluate(node.children[0]);
+    }
+    let result = this.evaluate(node.children[0]);
+    if(!result) {
+      return result;
+    } else {
+      return this.evaluate(node.children[2]);
+    }
+  }
+  LeftHandSideExpression(node) {
+    return this.evaluate(node.children[0]);
+  }
+  NewExpression(node) {
+    if(node.children.length === 1) {
+      return this.evaluate(node.children[0]);
+    }
+    if(node.children.length === 2) {
+      let cls = this.evaluate(node.children[1]);
+      return cls.construct();
+      /*
+      let object = this.realm.object.construct();
+      let cls = this.evaluate(node.children[1]);
+      let result = cls.call(object);
+      if(typeof result === "object") {
+        return result;
+      }else {
+        return object;
+      }*/
+    }
+  }
+  CallExpression(node) {
+    if(node.children.length === 1) {
+      return this.evaluate(node.children[0]);
+    }
+    if(node.children.length === 2) {
+      let func = this.evaluate(node.children[0]);
+      let args = this.evaluate(node.children[1]);
+      return func.call(args);
+      /*
+      let object = this.realm.object.construct();
+      let cls = this.evaluate(node.children[1]);
+      let result = cls.call(object);
+      if(typeof result === "object") {
+        return result;
+      }else {
+        return object;
+      }*/
+    }
+  }
+  MemberExpression(node) {
+    if(node.children.length === 1) {
+      return this.evaluate(node.children[0]);
+    }
+    if(node.children.length === 3) {
+      debugger;
+      let obj = this.evaluate(node.children[0]).get();
+      let prop =  obj.get(node.children[2].name);
+      if("value" in prop)
+        return prop.value;
+      if("get" in prop) 
+        return prop.get.call(obj);
+    }
   }
   Identifier(node) {
     let runningEC = this.ecs[this.ecs.length - 1];
