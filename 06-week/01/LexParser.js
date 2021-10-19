@@ -83,7 +83,7 @@ export function* scan(str) {
     NullLiteral: /null/,
     Keywords: /if|else|for|function|let|var/,
     Identifier: /[a-zA-Z_$][a-zA-Z0-9_$]*/,
-    Punctuator: /\+|\,|\?|\:|\{|\}|\.|\(|\=|\<|\+\+|\=\=|\=>|\)|\*|\.|\[|\]|\;/,
+    Punctuator: /\|\||\&\&|\+|\,|\?|\:|\{|\}|\.|\(|\=|\<|\+\+|\=\=|\=>|\)|\*|\.|\[|\]|\;/,
   };
 
   let regexp = new XRegExp(xregexp, "g", "InputElement");

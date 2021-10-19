@@ -29,8 +29,16 @@ let syntax = {
     ["AssignmentExpression"]
   ],
   AssignmentExpression: [
-    ["Identifier", "=", "AssignmentExpression"],
-    ["AdditiveExpression"]
+    ["LeftHandSideExpression", "=", "LogicalORExpression"],
+    ["LogicalORExpression"]
+  ],
+  LogicalORExpression: [
+    ["LogicalANDExpression"],
+    ["LogicalORExpression", "||", "LogicalANDExpression"],
+  ],
+  LogicalANDExpression: [
+    ["AdditiveExpression"],
+    ["LogicalANDExpression", "&&", "AdditiveExpression"],
   ],
   AdditiveExpression: [
     ["MultiplicativeExpression"],
@@ -38,10 +46,27 @@ let syntax = {
     ["AdditiveExpression", "-", "MultiplicativeExpression"],
   ],
   MultiplicativeExpression: [
-    ["PrimaryExpression"],
-    ["MultiplicativeExpression", "*", "PrimaryExpression"],
-    ["MultiplicativeExpression", "/", "PrimaryExpression"],
+    ["LeftHandSideExpression"],
+    ["MultiplicativeExpression", "*", "LeftHandSideExpression"],
+    ["MultiplicativeExpression", "/", "LeftHandSideExpression"],
   ],
+  LeftHandSideExpression: [
+    ["CallExpression"],
+    ["NewExpression"]
+  ],
+  CallExpression: [
+    ["MemberExpression", "Arguments"],
+    ["CallExpression", "Arguments"],
+  ],//new a()
+  NewExpression: [
+    ["MemberExpression"],
+    ["new", "NewExpression"]
+  ],//new a
+  MemberExpression: [
+    ["PrimaryExpression"],
+    ["PrimaryExpression", ".", "Identifier"],
+    ["PrimaryExpression", "[", "Expression", "]"]
+  ],//new a.b()
   PrimaryExpression: [
     ["(", "Expression", ")"],
     ["Literal"],
