@@ -13,8 +13,8 @@ class Carousel extends Component {
   render() {
     this.root = document.createElement("div");
     for(let record of this.attributes.src) {
-      let child = document.createElement("img");
-      child.src = record;
+      let child = document.createElement("div");
+      child.style.backgroundImage = `url('${record}')`;
       this.root.appendChild(child);
     }
     return this.root;
